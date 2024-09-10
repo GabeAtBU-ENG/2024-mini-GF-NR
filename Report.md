@@ -2,6 +2,7 @@
 The max_bright and min_bright values we found are 50000 and 1000 respectively.
 
 #### Exercise 2:
+We choose the starwars Imperial March.
 
 #### Exercise 3: 
 The average, minimum, maximum response time for 10 flashes total was 325.4, 292, and 413 respectively.
