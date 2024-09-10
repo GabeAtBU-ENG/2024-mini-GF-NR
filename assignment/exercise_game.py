@@ -17,7 +17,7 @@ baseEndpoint = 'https://privateapitest.onrender.com/putData/'
 ssid = 'BU Guest (unencrypted)'
 
 
-N: int = 3
+N: int = 10
 sample_ms = 10.0
 on_ms = 500
 
