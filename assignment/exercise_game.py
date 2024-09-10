@@ -6,6 +6,15 @@ from machine import Pin
 import time
 import random
 import json
+import requests
+
+import time
+import network
+import urequests
+
+# Define the API endpoint
+baseEndpoint = 'https://privateapitest.onrender.com/putData/'
+ssid = 'BU Guest (unencrypted)'
 
 
 N: int = 3
@@ -28,22 +37,6 @@ def blinker(N: int, led: Pin) -> None:
         time.sleep(0.1)
 
 
-def write_json(json_filename: str, data: dict) -> None:
-    """Writes data to a JSON file.
-
-    Parameters
-    ----------
-
-    json_filename: str
-        The name of the file to write to. This will overwrite any existing file.
-
-    data: dict
-        Dictionary data to write to the file.
-    """
-
-    with open(json_filename, "w") as f:
-        json.dump(data, f)
-
 
 def scorer(t: list[int | None]) -> None:
     # %% collate results
@@ -58,23 +51,77 @@ def scorer(t: list[int | None]) -> None:
     # and score (non-misses / total flashes) i.e. the score a floating point number
     # is in range [0..1]
     data = {}
+    
 
-    # %% make dynamic filename and write JSON
+    
+    if not t_good:
+        print("No score :(")
+        
+    else:
+        data['minimum'] = min(t_good)
+        data['maximum'] = max(t_good)
+        data['average'] = sum(t_good) / len(t_good)
+            
+        print("data json is: ")
+        print(data)
+        
+    url = baseEndpoint + "{:.1f}".format(data['minimum']) + "/" + "{:.1f}".format(data['maximum']) + "/" + "{:.1f}".format(data['average'])
+    
+    print(url)
+    
+    connect_and_get_data(ssid, url)
+  
 
-    now: tuple[int] = time.localtime()
+def connect_and_get_data(ssid: str, url: str, max_wait: int = 10) -> None:
+    """
+    Connect to the specified Wi-Fi network and make an HTTP GET request.
 
-    now_str = "-".join(map(str, now[:3])) + "T" + "_".join(map(str, now[3:6]))
-    filename = f"score-{now_str}.json"
+    :param ssid: The SSID of the Wi-Fi network to connect to.
+    :param url: The URL to make the HTTP GET request to.
+    :param max_wait: Maximum time (in seconds) to wait for the connection to establish.
+    """
+    # Initialize WLAN
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(ssid)
 
-    print("write", filename)
+    # Wait for connection or fail
+    while max_wait > 0:
+        if wlan.status() < 0 or wlan.status() >= 3:
+            break
+        max_wait -= 1
+        print('Waiting for connection...')
+        time.sleep(1)
 
-    write_json(filename, data)
+    # Handle connection error
+    if wlan.status() != 3:
+        raise RuntimeError('Network connection failed')
+    else:
+        print('Connected')
+        status = wlan.ifconfig()
+        print('IP = ' + status[0])
 
+        # Make GET request
+        try:
+            r = urequests.get(url)
+            print(f'Status code: {r.status_code}')
+            # You can also print r.text or r.json() if needed
+        except Exception as e:
+            print(f'Request failed: {e}')
+        finally:
+            r.close()
+
+
+    
 
 if __name__ == "__main__":
     # using "if __name__" allows us to reuse functions in other script files
+    print("Welcome to the Light Game!")
 
-    led = Pin("LED", Pin.OUT)
+    # Set Pin 10 to be the Start/Stop LED
+    led = Pin(10, Pin.OUT)
+    
+    # Set Pin 16 to be the Button
     button = Pin(16, Pin.IN, Pin.PULL_UP)
 
     t: list[int | None] = []
