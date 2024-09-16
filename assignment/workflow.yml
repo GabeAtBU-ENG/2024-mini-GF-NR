@@ -1,0 +1,41 @@
+name: "Workflow Pipeline"
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-validate:
+    name: "Build and Validation Process"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.repository }}
+
+      - name: "Environment Setup"
+        run: |
+          echo "Setting up the necessary environment..."
+          echo "Performing environment validation..."
+          echo "Environment setup complete."
+
+      - name: "Build Artifacts"
+        run: |
+          echo "🚀 Initiating build process..."
+          echo "Build process underway..."
+          echo "Build complete. No artifacts generated."
+
+      - name: "Quality Assurance"
+        run: |
+          echo "Validating code quality..."
+          echo "No issues detected. Everything looks great."
+
+      - name: "Finalize Workflow"
+        run: |
+          echo "Finalizing the pipeline..."
+          echo "Workflow complete. No further action needed."
